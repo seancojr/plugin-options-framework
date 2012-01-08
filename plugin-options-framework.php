@@ -19,6 +19,7 @@ if (!class_exists('Plugin_Options_Framework_0_2')){
 			$this->namespace = isset($options['namespace']) ? $options['namespace'] : pathinfo($this->plugin_path, PATHINFO_FILENAME);
 			add_action('admin_menu', array(&$this, '_admin_menu'));
 			add_action('admin_init', array(&$this, '_admin_init'));
+			add_filter('whitelist_options', array(&$this, '_whitelist_options'));
 		}
 		
 		function set_fields($fields){
@@ -28,6 +29,40 @@ if (!class_exists('Plugin_Options_Framework_0_2')){
 		function _admin_enqueue_scripts(){
 			wp_enqueue_script('farbtastic');
 			wp_enqueue_script('pof-admin', plugins_url('js/admin.js', __FILE__));
+		}
+		
+		function get_default_storage_hash(){
+			$res = array();
+			foreach($this->fields as $field){
+				if (isset($field['name'])){
+					$res[$this->get_storage_name($field['name'])] = isset($field['default']) ? 
+						$this->addslashes_deep($field['default']) : null;
+				}
+			}
+			return $res;
+		}
+		
+		function addslashes_deep($value) {
+			if ( is_array($value) ) {
+				$value = array_map('stripslashes_deep', $value);
+			} elseif ( is_object($value) ) {
+				$vars = get_object_vars( $value );
+				foreach ($vars as $key=>$data) {
+					$value->{$key} = stripslashes_deep( $data );
+				}
+			} else {
+				$value = addslashes($value);
+			}
+			return $value;
+		}
+		
+		function _whitelist_options($options){
+			global $this_file, $parent_file, $action;
+			if ($this_file != 'options.php' || $parent_file != 'options-general.php' ||
+			 	$_POST['option_page'] != 'aioe' || $action != 'update')
+				return $options;
+			$_POST = array_merge($_POST, $this->get_default_storage_hash());
+			return $options;
 		}
 		
 		function _admin_enqueue_styles(){
@@ -149,7 +184,7 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2')){
 						break;
 					case 'section':
 						if ($section_index) echo "\n<div style='clear: both'></div></div></div></div></div>\n"; //close current section
-						echo "<div class=\"metabox-holder\"" . (isset($field['show_if']) ? 'data-show_if="' . $field['show_if'] . '" ' : '') . ">\n<div class=\"postbox\"><div class=\"group\">";
+						echo "<div class=\"metabox-holder\"" . (isset($field['show_if']) ? 'data-show_if="' . $this->input_name($field['show_if']) . '" ' : '') . ">\n<div class=\"postbox\"><div class=\"group\">";
 						echo '<h3>' . $field['title'] . "</h3>\n<div class=\"inside\">";
 						$section_index++;
 						break;
@@ -186,7 +221,7 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2')){
 		}
 		
 		function render_field($field){
-			echo "<div class=\"field field-{$field['type']}" . (isset($field['class']) ? " " . $field['class'] : '') . "\" " . (isset($field['name']) ? "id=\"field-{$field['name']}\" " : '') . (isset($field['show_if']) ? 'data-show_if="' . $field['show_if'] . '" ' : '') . ">\n"; 
+			echo "<div class=\"field field-{$field['type']}" . (isset($field['class']) ? " " . $field['class'] : '') . "\" " . (isset($field['name']) ? "id=\"field-{$field['name']}\" " : '') . (isset($field['show_if']) ? 'data-show_if="' . $this->input_name($field['show_if']) . '" ' : '') . ">\n"; 
 			echo "<h4 class=\"heading field-title\">{$field['title']}</h4>\n";
 			echo "<div class=\"option\">\n";
 			$method = $field['type'];

@@ -15,7 +15,7 @@ if (!class_exists('Plugin_Options_Framework_0_2')){
 			$this->plugin_path = $plugin_path;
 			$this->fields = $fields;
 			$this->options = wp_parse_args($options);
-			$this->renderer = isset($options['renderer']) ? new $options['renderer'](&$this) : new Plugin_Options_Framework_Fields_0_2(&$this);
+			$this->renderer = isset($options['fields']) ? new $options['fields'](&$this) : new Plugin_Options_Framework_Fields_0_2(&$this);
 			$this->namespace = isset($options['namespace']) ? $options['namespace'] : pathinfo($this->plugin_path, PATHINFO_FILENAME);
 			add_action('admin_menu', array(&$this, '_admin_menu'));
 			add_action('admin_init', array(&$this, '_admin_init'));

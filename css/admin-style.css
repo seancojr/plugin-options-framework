@@ -1,0 +1,129 @@
+#pof{
+	min-width: 500px;
+}
+#pof-form{
+	margin: 0;
+	margin-bottom: 1em;
+	padding: 1em;
+	border: 1px solid #CCC;
+	border-top: none;
+}
+#pof-form.notabs{
+	border-top: 1px solid #CCC;
+	margin-top: 15px;
+}
+#pof-form .metabox-holder{
+	clear: both;
+}
+
+#pof-form .tab-hidden{
+	display: none;
+}
+#pof-form h4.field-title{
+	padding: 10px 0px 7px;
+	margin: 0 0 10px;
+	border-bottom: 1px solid #DFDFDF;
+}
+#pof-form .field{
+	padding: 0px 10px 0px 0;
+	margin-top: 10px;
+	clear: both;}
+#pof-form .postbox{
+	background: #fcfcfc;
+}
+
+#pof-form .field-checkbox .option label, 
+#pof-form .option label.title{
+	margin-left: 0.75ex;
+}
+
+#pof-form .option{
+	float: left;
+	min-width: 470px;
+	max-width: 800px;
+	width: 60%;
+}
+#pof-form input[type=text]{
+	width: 100%;
+}
+#pof-form div.legend{
+	width: 40%;
+	float: left;
+	line-height: 18px;
+	color: #888;
+}
+#pof-form .option.full{
+	width: 100%;
+	max-width: 100%;
+}
+#pof-form .option select{
+	max-width: 250px;
+}
+#pof-form .pof-color-picker input[type=text]{
+	width: 100px;
+}
+
+#pof-form .farbtastic,
+#pof-form .farbtastic .wheel{
+	width: 195px;
+	height: 195px;
+}
+#pof-form .field .legend strong,
+#pof-form .field .legend h1,
+#pof-form .field .legend h2,
+#pof-form .field .legend h3,
+#pof-form .field .legend h4{
+	color: #333;
+}
+#pof-form .option input.text,
+#pof-form .option input.password,
+#pof-form .option textarea,
+#pof-form .legend,
+#pof-form .field-checkbox .option,
+#pof-form .field-color .option{
+	margin-bottom: 15px;
+}
+#pof-form .option input.text,
+#pof-form .option input.password, 
+#pof-form .option textarea{
+	width: 98%;
+}
+#pof-form .option textarea{
+	resize: vertical;
+}
+#pof-form .medium input.text,
+#pof-form .medium input.password,
+#pof-form .medium textarea{
+	width: 250px;
+	min-width: 250px;
+}
+#pof-form .small input.text, 
+#pof-form .small input.password,
+#pof-form .small textarea{
+	width: 170px;
+	min-width: 170px;
+}
+#pof-form .micro input.text,
+#pof-form .micro input.password{
+	width: 90px;
+	min-width: 90px;
+}
+#pof-form .wide .option{
+	float: none;
+	width: auto;
+}
+#pof-form .wide input.text,
+#pof-form .wide textarea{
+	width: 98%;
+}
+#pof-form .wide .legend{
+	float: none;
+	width: auto;
+}
+#pof-form .radio-wrapper{
+	margin-bottom: 0.5em;
+	line-height: 18px;
+}
+#pof-submit{
+	margin-top: 15px;
+}

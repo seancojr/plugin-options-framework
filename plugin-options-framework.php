@@ -59,7 +59,7 @@ if (!class_exists('Plugin_Options_Framework_0_2')){
 		function _whitelist_options($options){
 			global $this_file, $parent_file, $action;
 			if ($this_file != 'options.php' || $parent_file != 'options-general.php' ||
-			 	$_POST['option_page'] != 'aioe' || $action != 'update')
+			 	(isset($_POST['option_page']) && $_POST['option_page'] != 'aioe') || $action != 'update')
 				return $options;
 			$_POST = array_merge($_POST, $this->get_default_storage_hash());
 			return $options;

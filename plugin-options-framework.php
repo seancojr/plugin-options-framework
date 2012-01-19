@@ -3,6 +3,7 @@ WordPress plugin options framework
 Copyright: Nikolay Karev, http://karevn.com
 Version: 0.2
 */
+
 require('vendor/html-helpers.php');
 if (!class_exists('Plugin_Options_Framework_0_2')){
 	class Plugin_Options_Framework_0_2{
@@ -59,9 +60,11 @@ if (!class_exists('Plugin_Options_Framework_0_2')){
 		function _whitelist_options($options){
 			global $this_file, $parent_file, $action;
 			if ($this_file != 'options.php' || $parent_file != 'options-general.php' ||
-			 	(isset($_POST['option_page']) && $_POST['option_page'] != 'aioe') || $action != 'update')
+			 	(isset($_POST['option_page']) && $_POST['option_page'] != 'aioe') || $action != 'update'
+				|| $this->namespace != stripslashes($_POST['_namespace']))
 				return $options;
-			$_POST = array_merge($_POST, $this->get_default_storage_hash());
+			if ($_REQUEST['reset'])
+				$_POST = array_merge($_POST, $this->get_default_storage_hash());
 			return $options;
 		}
 		
@@ -91,9 +94,13 @@ if (!class_exists('Plugin_Options_Framework_0_2')){
 			return isset($this->options['page_title']) ? $this->options['page_title'] : $this->extract_plugin_name() . " " . __('Settings');
 		}
 		
+		function menu_title(){
+			return isset($this->options['menu_title']) ? $this->options['menu_title'] : $this->extract_plugin_name();
+		}
+		
 		function _admin_menu(){
-			$menu_title = isset($this->options['menu_title']) ? $this->options['menu_title'] : $this->extract_plugin_name();
-			add_options_page($this->page_title(), $menu_title, 'manage_options', 
+			
+			add_options_page($this->page_title(), $this->menu_title(), 'manage_options', 
 				$this->namespace, array(&$this, 'render'));
 			add_action('admin_print_styles-settings_page_' .$this->namespace, array(&$this, '_admin_enqueue_styles'));
 			add_action('admin_print_scripts-settings_page_' .$this->namespace, array(&$this, '_admin_enqueue_scripts'));
@@ -162,11 +169,14 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2')){
 				//make sure the first tab is defined if there are multiple tabs
 					$fields = array_merge(array(array('type' => 'tab', 'title' => __('General'))), $fields);
 			}
-			echo '<div id="pof">';
+			echo '<div id="no-js-message" class="error"><p>' . __('This page requires JavaScript to be enabled in your browser. Please enable JavaScript.') . "</p></div>";
+			echo '<div id="pof" class="hide-if-no-js">';
 			$this->render_tabs($fields);
 			$section_index = 0;
 			$tab_index = 0;
-			echo '<form action="options.php" method="post" id="pof-form">';
+			echo '<form action="options.php" method="post" id="pof-form"> ';
+			$this->h->hidden_field('_namespace', $this->pof->namespace);
+			$this->h->hidden_field('reset', '', array('id' => 'reset'));
 			settings_fields($this->pof->namespace);
 			if (count($this->get_tabs($fields))){
 				echo "\n<div class=\"tabs\" id=\"pof-tabs\">\n";
@@ -209,7 +219,7 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2')){
 			?>
 			<div id="pof-submit">
 				<input type="submit" class="button-primary" name="update" value="<?php esc_attr_e( 'Save Options' ); ?>" />
-				<input type="submit" class="reset-button button-secondary" name="reset" value="<?php esc_attr_e( 'Restore Defaults' ); ?>" onclick="return confirm( '<?php print esc_js( __( 'Click OK to reset. All the settings will be reset to defaults!' ) ); ?>' );" />
+				<input type="submit" class="reset-button button-secondary hide-if-no-js" value="<?php esc_attr_e( 'Restore Defaults' ); ?>" onclick="return confirm( '<?php print esc_js( __( 'Click OK to reset. All the settings will be reset to defaults!' ) ); ?>' );" id="button-reset" />
 				<div class="clear"></div>
 			</div>
 			</form>

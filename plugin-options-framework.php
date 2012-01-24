@@ -4,8 +4,8 @@ Copyright: Nikolay Karev, http://karevn.com
 Version: 0.2
 */
 require('vendor/html-helpers.php');
-if (!class_exists('Plugin_Options_Framework_0_2')){
-	class Plugin_Options_Framework_0_2{
+if (!class_exists('Plugin_Options_Framework_0_2_1')){
+	class Plugin_Options_Framework_0_2_1{
 		var $plugin_path;
 		var $options;
 		var $renderer;
@@ -15,7 +15,7 @@ if (!class_exists('Plugin_Options_Framework_0_2')){
 			$this->plugin_path = $plugin_path;
 			$this->fields = $fields;
 			$this->options = wp_parse_args($options);
-			$this->renderer = isset($options['fields']) ? new $options['fields'](&$this) : new Plugin_Options_Framework_Fields_0_2(&$this);
+			$this->renderer = isset($options['fields']) ? new $options['fields'](&$this) : new Plugin_Options_Framework_Fields_0_2_1(&$this);
 			$this->namespace = isset($options['namespace']) ? $options['namespace'] : pathinfo($this->plugin_path, PATHINFO_FILENAME);
 			add_action('admin_menu', array(&$this, '_admin_menu'));
 			add_action('admin_init', array(&$this, '_admin_init'));
@@ -133,8 +133,10 @@ if (!class_exists('Plugin_Options_Framework_0_2')){
 		function render(){
 			?>
 			<div class="wrap">
+				<?php do_action('pof_before_page_title', $this->namespace) ?>
 				<?php screen_icon( 'plugins' ); ?>
 				<h2><?php echo $this->page_title() ?></h2>
+				<?php do_action('pof_after_page_title', $this->namespace) ?>
 				<?php if (count($this->fields)): ?>
 						<?php $this->renderer->render(&$this) ?>
 				<?php else: ?>
@@ -142,13 +144,14 @@ if (!class_exists('Plugin_Options_Framework_0_2')){
 						<p><?php _e('Please provide some settings fields when creating an options framework instance')?></p>
 					</div>
 				<?php endif ?>
+				<?php do_action('pof_after_form', $this->namespace) ?>
 			</div><?php
 		}
 	}
 }
 
-if (!class_exists('Plugin_Options_Framework_Fields_0_2')){
-	class Plugin_Options_Framework_Fields_0_2{
+if (!class_exists('Plugin_Options_Framework_Fields_0_2_1')){
+	class Plugin_Options_Framework_Fields_0_2_1{
 		var $pof;
 		var $h;
 		function __construct(&$pof){

@@ -1,3 +1,9 @@
+#no-js-message{
+	display: none;
+}
+.no-js #no-js-message{
+	display: block;
+}
 #pof{
 	min-width: 500px;
 }

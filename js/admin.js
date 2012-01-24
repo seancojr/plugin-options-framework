@@ -48,5 +48,7 @@ jQuery(function($){
 	}
 
 	$('.pof-color-picker').pof_color_picker();
-
+	$('#button-reset').click(function(){
+		$('#reset').val('1');
+	});
 });

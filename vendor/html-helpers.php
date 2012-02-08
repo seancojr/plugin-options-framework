@@ -111,12 +111,14 @@ if (!class_exists('HTML_Helpers_0_4')){
 			}
 			foreach ($values as $arr){
 				$text = $arr[0];
-				$value = $arr[1];
+				if (isset($arr[1]))
+					$value = $arr[1];
+				else unset($value);
 				$attrs = array();
-				if (!$multi && ($value && $value == $selected || $text == $selected) ||
+				if ((!$multi && ((isset($value) && $value == $selected) || (!isset($value) && $selected == null) || $text === $selected)) ||
 					($multi && ($value && in_array($value, $selected) || in_array($text, $selected)))) 
 					$attrs['selected'] = 'selected';
-				if ($value)
+				if (isset($value))
 					$attrs['value'] = $value;
 				$res .= $this->_tag("option", $attrs, $text);      
 			}

@@ -1,23 +1,23 @@
 <?php /* 
 WordPress plugin options framework
 Copyright: Nikolay Karev, http://karevn.com
-Version: 0.2
+Version: 0.2.3
 */
 
 require('vendor/html-helpers.php');
-if (!class_exists('Plugin_Options_Framework_0_2_1')){
-	class Plugin_Options_Framework_0_2_1{
-		var $plugin_path;
+if (!class_exists('Plugin_Options_Framework_0_2_3')){
+	class Plugin_Options_Framework_0_2_3{
+		var $plugin_file;
 		var $options;
 		var $renderer;
 		var $namespace;
 		
-		function __construct($plugin_path, $fields = array(), $options = array()){
-			$this->plugin_path = $plugin_path;
+		function __construct($plugin_file, $fields = array(), $options = array()){
+			$this->plugin_file = $plugin_file;
 			$this->fields = $fields;
 			$this->options = wp_parse_args($options);
-			$this->renderer = isset($options['fields']) ? new $options['fields'](&$this) : new Plugin_Options_Framework_Fields_0_2_1(&$this);
-			$this->namespace = isset($options['namespace']) ? $options['namespace'] : pathinfo($this->plugin_path, PATHINFO_FILENAME);
+			$this->renderer = isset($options['fields']) ? new $options['fields'](&$this) : new Plugin_Options_Framework_Fields_0_2_3(&$this);
+			$this->namespace = isset($options['namespace']) ? $options['namespace'] : pathinfo($this->plugin_file, PATHINFO_FILENAME);
 			add_action('admin_menu', array(&$this, '_admin_menu'));
 			add_action('admin_init', array(&$this, '_admin_init'));
 			add_filter('whitelist_options', array(&$this, '_whitelist_options'));
@@ -86,7 +86,7 @@ if (!class_exists('Plugin_Options_Framework_0_2_1')){
 		}
 		
 		function extract_plugin_name(){
-			$data = get_plugin_data(trailingslashit(WP_PLUGIN_DIR) . $this->plugin_path);
+			$data = get_plugin_data($this->plugin_file);
 			return $data['Name'];
 		}
 		
@@ -99,7 +99,6 @@ if (!class_exists('Plugin_Options_Framework_0_2_1')){
 		}
 		
 		function _admin_menu(){
-			
 			add_options_page($this->page_title(), $this->menu_title(), 'manage_options', 
 				$this->namespace, array(&$this, 'render'));
 			add_action('admin_print_styles-settings_page_' .$this->namespace, array(&$this, '_admin_enqueue_styles'));
@@ -140,10 +139,10 @@ if (!class_exists('Plugin_Options_Framework_0_2_1')){
 		function render(){
 			?>
 			<div class="wrap">
-				<?php do_action('pof_before_page_title', $this->namespace) ?>
-				<?php screen_icon( 'plugins' ); ?>
-				<h2><?php echo $this->page_title() ?></h2>
-				<?php do_action('pof_after_page_title', $this->namespace) ?>
+					<?php do_action('pof_before_page_title', $this->namespace) ?>
+					<?php screen_icon( 'plugins' ); ?>
+					<h2><?php echo $this->page_title() ?></h2>
+					<?php do_action('pof_after_page_title', $this->namespace) ?>
 				<?php if (count($this->fields)): ?>
 						<?php $this->renderer->render(&$this) ?>
 				<?php else: ?>
@@ -157,8 +156,8 @@ if (!class_exists('Plugin_Options_Framework_0_2_1')){
 	}
 }
 
-if (!class_exists('Plugin_Options_Framework_Fields_0_2_1')){
-	class Plugin_Options_Framework_Fields_0_2_1{
+if (!class_exists('Plugin_Options_Framework_Fields_0_2_3')){
+	class Plugin_Options_Framework_Fields_0_2_3{
 		var $pof;
 		var $h;
 		function __construct(&$pof){
@@ -168,22 +167,16 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2_1')){
 		
 		function render(){
 			$fields = $this->pof->fields;
-			if (count($this->get_tabs($fields)) && isset($fields[0]) && $fields[0]['type'] != 'tab'){
-				//make sure the first tab is defined if there are multiple tabs
-					$fields = array_merge(array(array('type' => 'tab', 'title' => __('General'))), $fields);
-			}
 			echo '<div id="no-js-message" class="error"><p>' . __('This page requires JavaScript to be enabled in your browser. Please enable JavaScript.') . "</p></div>";
 			echo '<div id="pof" class="hide-if-no-js">';
-			$this->render_tabs($fields);
+			$tabs_count =  $this->render_tabs($fields);
 			$section_index = 0;
 			$tab_index = 0;
 			echo '<form action="options.php" method="post" id="pof-form"> ';
 			$this->h->hidden_field('_namespace', $this->pof->namespace);
 			$this->h->hidden_field('reset', '', array('id' => 'reset'));
 			settings_fields($this->pof->namespace);
-			if (count($this->get_tabs($fields))){
-				echo "\n<div class=\"tabs\" id=\"pof-tabs\">\n";
-			}
+			echo "\n<div class=\"tabs\" id=\"pof-tabs\">\n";
 			foreach($fields as $field){
 				switch($field['type']){
 					case 'tab':
@@ -234,12 +227,24 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2_1')){
 		}
 		
 		function render_field($field){
-			echo "<div class=\"field field-{$field['type']}" . (isset($field['class']) ? " " . $field['class'] : '') . "\" " . (isset($field['name']) ? "id=\"field-{$field['name']}\" " : '') . (isset($field['show_if']) ? 'data-show_if="' . $this->input_name($field['show_if']) . '" ' : '') . ">\n"; 
-			echo "<h4 class=\"heading field-title\">{$field['title']}</h4>\n";
-			echo "<div class=\"option\">\n";
+			$this->render_field_prefix($field);
 			$method = $field['type'];
 			$this->$method($field);
-			echo "</div>\n";
+			$this->render_field_suffix($field);
+		}
+		
+		function render_field_prefix($field){
+			echo "<div class=\"field field-{$field['type']}" . (isset($field['class']) ? " " . $field['class'] : '') . "\" " . (isset($field['name']) ? "id=\"field-{$field['name']}\" " : '') . (isset($field['show_if']) ? 'data-show_if="' . $this->input_name($field['show_if']) . '" ' : '') . ">\n"; 
+			if (!(isset($field['notitle']) && $field['notitle']))
+				echo "<h4 class=\"heading field-title\">" . 
+				(isset($field['title']) ? $field['title'] : 'Noname field') . "</h4>\n";
+			if (!(isset($field['nowrapper']) && $field['nowrapper']))
+			echo "<div class=\"option\">\n";
+		}
+		
+		function render_field_suffix($field){
+			if (!(isset($field['nowrapper']) && $field['nowrapper'])) 
+				echo "</div>\n";
 			if (isset($field['legend'])){
 				echo "<div class=\"legend\">{$field['legend']}</div>";
 			}
@@ -250,21 +255,37 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2_1')){
 			$classes = array('checkbox');
 			if (isset($field['class']))
 				$classes []= $field['class'];
+			$checkbox_attr = array('class' => $classes);
+			if (isset($field['disabled']) && $field['disabled'])
+				$checkbox_attr['disabled'] = 'disabled';
 			$this->h->checkbox($this->input_name($field['name']), 1, 
-				$this->pof->get_option($field['name']), array('class' => $classes)
+				$this->pof->get_option($field['name']), $checkbox_attr
 				);
-			if (isset($field['label']))
-				$this->h->label($field['label'], array('for' => $this->input_name($field['name'])));
+			$label = isset($field['label']) ? $field['label'] : $field['title'];
+			$this->h->label($label, array('for' => $this->input_name($field['name'])));
+		}
+		
+		function field_classes($defaults, $field){
+			$classes = $defaults;
+			if (isset($field['class']) && $field['class']){
+				if (is_string($field['class']))
+					$field['class'] = explode(' ', $field['class']);
+				$classes = array_merge($classes, $field['class']);
+			}
+			return $classes;
 		}
 		
 		function checkboxes($field){
 			$classes = array('checkboxes');
-			
 		}
 		
+		
 		function select($field){
+			$attr = array();
+			if (isset($field['disabled']) && $field['disabled'])
+				$attr['disabled'] = 'disabled';
 			$this->h->select($this->input_name($field['name']), $field['values'], 
-				$this->pof->get_option($field['name']));
+				$this->pof->get_option($field['name']), $attr);
 		}
 		
 		function color($field){
@@ -282,15 +303,21 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2_1')){
 		}
 		
 		function text($field){
-			echo '<input id="' . $field['name'] . '" class="text' . (isset($field['class']) ? " " .
-				$field['class'] : '') . '" type="text" name="' . $this->input_name($field['name']) .
-				'" value="'. esc_attr($this->pof->get_option($field['name'])) .'" />';
+			$attr = array();
+			if (isset($field['disabled']) && $field['disabled'])
+				$attr['disabled'] = 'disabled';
+			$attr['class'] = $this->field_classes(array('text'), $field);
+			$this->h->text_field($this->input_name($field['name']),
+				$this->pof->get_option($field['name']), $attr);
 		}
 		
 		function password($field){
-			echo '<input id="' . $field['name'] . '" class="password' . (isset($field['class']) ? " " .
-				$field['class'] : '') . '" type="password" name="' . $this->input_name($field['name']) .
-				'" value="'. esc_attr($this->pof->get_option($field['name'])) .'" />';
+			$attr = array();
+			if (isset($field['disabled']) && $field['disabled'])
+				$attr['disabled'] = 'disabled';
+			$attr['class'] = $this->field_classes(array('password'), $field);
+			$this->h->password_field($this->input_name($field['name']),
+				$this->pof->get_option($field['name']), $attr);
 		}
 		
 		function editor($field){
@@ -316,15 +343,13 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2_1')){
 		}
 		
 		function textarea($field){
-			$classes = array('textarea');
-			if (isset($field['class']))
-				$classes []= $field['class'];
-			$rows = isset($field['rows']) ? $field['rows'] : get_option('default_post_edit_rows');
+			$attr = array();
+			if (isset($field['disabled']) && $field['disabled'])
+				$attr['disabled'] = 'disabled';
+			$attr['class'] = $this->field_classes(array('textarea'), $field);
+			$attr['rows'] = isset($field['rows']) ? $field['rows'] : get_option('default_post_edit_rows');
 			$this->h->textarea($this->input_name($field['name']),
-				$this->pof->get_option($field['name']), array(
-					'class' => $classes,
-					'rows' => $rows
-				)
+				$this->pof->get_option($field['name']), $attr
 			);
 		}
 		
@@ -343,18 +368,29 @@ if (!class_exists('Plugin_Options_Framework_Fields_0_2_1')){
 			return $tabs;
 		}
 		
-		function render_tabs($fields){
-			$tabs = $this->get_tabs($fields);
-			if (count($tabs)){
-				?>
-				<h2 class="nav-tab-wrapper" id="pof-tabs-nav">
-					<?php $i = 0 ?>
-					<?php foreach($tabs as $id => $title):?>
-						<a href="#<?php echo $id ?>" class="nav-tab <?php echo !$i++ ? 'nav-tab-active' : '' ?>"><?php echo esc_html($title) ?></a>
-					<?php endforeach ?>
-				</h2>
-				<?php
-			}
+		function render_tab($index, $field){
+			$tab_id = sanitize_title_with_dashes($field['title']);
+			$classes = array('nav-tab');
+			if (!$index)
+				$classes []= 'nav-tab-active';
+			if (isset($field['class']))
+				$classes []= $field['class'];
+			$href = isset($field['href']) ? $field['href'] : "#nav-tab-$index";
+			$this->h->link_to($field['title'], $href, 
+				array('class' => $classes, 'id' => $tab_id));
+		}
+		
+		function render_tabs($fields){ ?>
+			<h2 class="nav-tab-wrapper" id="pof-tabs-nav">
+			<?php $i = 0 ;
+			foreach($this->pof->fields as $field)
+				if ($field['type'] == 'tab'){
+					$this->render_tab($i++, $field);
+				}
+			?></h2><?php
+			if (!$i)
+				$this->render_tab(0, array('title' => __('General')));
+			return $i;
 		}
 	}
 }

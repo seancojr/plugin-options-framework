@@ -1,6 +1,8 @@
 var farbtastic;
 jQuery(function($){
 	$('#pof-tabs-nav a').click(function(){
+		if (!$(this).attr('href').match(/#nav\-tab\-\d+/))
+			return true;
 		$('#pof-tabs .tab').addClass('tab-hidden');
 		$('#pof-tabs-nav a').removeClass('nav-tab-active');
 		$(this).addClass('nav-tab-active');
